@@ -12,7 +12,6 @@ public class Main {
 
     private static Scanner scanner1 = new Scanner(System.in);  //сканнер для ввода
     private static Random random = new Random();           // для генерации чисел
-    private static final int ALL_WORDS_AMOUNT = 11650; // количество слов в txt файле
     private static List<String> guessesList = new ArrayList<>();       //список всех попыток пользователя отгадать буквы
     public static void main(String[] args) throws FileNotFoundException {
 
@@ -25,26 +24,32 @@ public class Main {
 
     }
 
+    public static void startGameRound(){
+        //guessesList.add(letter);      //добавляем букву в массив всех попыток пользователя
+    }
+
     public static String getRandomWord() throws FileNotFoundException { //исключение если файл не найден
 
         String fileName = "WordsStockRus.txt"; //путь к файлу
         File file = new File(fileName);   //сохраняем файл
+        String chosenWord = null;      //строка для сохранения полученного слова
 
-        int randomWordIndex = random.nextInt(ALL_WORDS_AMOUNT); //генерируем случайный индекс слова для игры
-
-        String[] words = new String[ALL_WORDS_AMOUNT];  //массив для слов из файла
-        int count = 0;                                  //итератор для цикла сохранения слов в массив
+        int count = 0;                                  //итератор для посчета слов
         try (Scanner scanner2 = new Scanner(file)){      //пробуем считать с файла
-            while (scanner2.hasNextLine() && count <= ALL_WORDS_AMOUNT){ //пока в файле есть слова + пока итератор меньше кол-ва слов
+            while (scanner2.hasNextLine()){             //пока в файле есть слова
                 String word = scanner2.nextLine().trim();       //считываем слово в строке
-                if (!word.isEmpty()){                           //проверка пустая ли строка
-                    words[count++] = word;              //если не пустая - добавляем в массив
+
+                if (word.isEmpty()) continue;                      //если строка пустая - пропускаем
+                count++;                                        //подсчитываем количество слов
+
+                if (random.nextInt(count) == 0){               //каждый раз с небольшой вероятностью заменяем выбранное слово на новое
+                    chosenWord = word;                        //сохраняем слово
                 }
             }
         }
 
-        if (count == 0) return "Нет слов в файле!";        //итератор остался 0 - в файле нет слов
-        return words[randomWordIndex];             //возвращаем сгенерированное слово
+        if (chosenWord == null) return "Нет слов в файле!";        //нет выбранного слова - в файле нет слов
+        return chosenWord;             //возвращаем сгенерированное слово
     }
 
     public static String getInputLetter(){        //метод для получения введеной пользователем буквы и ее проверки
@@ -77,7 +82,8 @@ public class Main {
                 continue;
             }
 
-            guessesList.add(letter);                     //добавляем букву в массив всех попыток пользователя
+           //так же напоминание для себя - нужно добавлять букву в массив всех попыток guessesList в другом методе,
+            //чтобы этот метод не перегружался
 
             return letter;                          //возвращаем букву в нижнем регистре
 
