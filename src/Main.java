@@ -13,10 +13,12 @@ public class Main {
     private static Scanner scanner1 = new Scanner(System.in);  //сканнер для ввода
     private static Random random = new Random();           // для генерации чисел
     private static List<String> guessesList = new ArrayList<>();       //список всех попыток пользователя отгадать буквы
+
+
     public static void main(String[] args) throws FileNotFoundException {
 
         System.out.println(getRandomWord());
-
+        startGameRound();
 
     }
 
@@ -25,7 +27,9 @@ public class Main {
     }
 
     public static void startGameRound(){
-        //guessesList.add(letter);      //добавляем букву в массив всех попыток пользователя
+        String x = getInputLetter();
+        guessesList.add(x);      //добавляем букву в массив всех попыток пользователя
+        System.out.println(guessesList);
     }
 
     public static String getRandomWord() throws FileNotFoundException { //исключение если файл не найден
@@ -54,9 +58,9 @@ public class Main {
 
     public static String getInputLetter(){        //метод для получения введеной пользователем буквы и ее проверки
 
-        System.out.println("Введите букву");
+        System.out.println("Введите русскую букву");
 
-        do {
+        while (true){
             String input = scanner1.nextLine().trim();      //получение введеного символа в строку input
 
             if (input.isEmpty()){                               //проверка на пустое значение
@@ -69,25 +73,20 @@ public class Main {
                 continue;
             }
 
-            char inputChar = input.charAt(0);               //приводим строку к символу
-            if (!Character.isLetter(inputChar)){               //проверка является ли введеной символ буквой
-                System.out.println("Вы ввели неправильный символ! Введите букву!");
+            String letter = input.toLowerCase();        //приведение буквы к нижнему регистру
+            if (!letter.matches("[а-яё]")){      //проверка только русских букв
+                System.out.println("Вы ввели неправильный символ! Введите русскую букву!");
                 continue;
             }
-
-            String letter = input.toLowerCase();        //приводим к нижнему регистру
 
             if (guessesList.contains(letter)){
                 System.out.println("Вы уже вводили эту букву! Введите новую!");
                 continue;
             }
 
-           //так же напоминание для себя - нужно добавлять букву в массив всех попыток guessesList в другом методе,
-            //чтобы этот метод не перегружался
-
             return letter;                          //возвращаем букву в нижнем регистре
 
-        } while (true);
+        }
     }
 
     //метод getRandomWord, который заходит в файл и берет рандомное слово
