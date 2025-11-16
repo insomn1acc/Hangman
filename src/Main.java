@@ -2,10 +2,7 @@
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Scanner;
-import java.util.Random;
+import java.util.*;
 
 
 public class Main {
@@ -13,11 +10,10 @@ public class Main {
     private static Scanner scanner1 = new Scanner(System.in);  //сканнер для ввода
     private static Random random = new Random();           // для генерации чисел
     private static List<String> guessesList = new ArrayList<>();       //список всех попыток пользователя отгадать буквы
-    private static int guessesCount = 0;                      //количество всех попыток пользователя
     private static String GAME_STATE_WIN = "Игрок победил";      //состояние игры если игрок победил
     private static String GAME_STATE_LOSE = "Игрок проиграл";    //состояние игры если игрок проиграл
     private static String GAME_STATE_NOT_FINISHED = "Игра еще не закончена"; //состояние игры если она еще не закончена
-    private static int mistakesNumber = 6;                  //количество допустимых ошибок для пользователя
+    private static int gameMistakesNumber = 6;                  //количество допустимых ошибок для пользователя
     private static int mistakesCount = 0;               //подсчет всех ошибок
 
 
@@ -46,33 +42,43 @@ public class Main {
 
 
     public static void startGameRound() throws FileNotFoundException {
+        mistakesCount = 0;      //очищаем количество ошибок пользователя
+        guessesList.clear();    //очищаем список использованных букв пользователя
 
-        String wordMain = getRandomWord();          //получаем рандомное слово из файла
-        System.out.println(wordMain);
-        System.out.println(showHiddenWord(wordMain));          //отображаем скрытое слово
+        String wordMain = getRandomWord().toUpperCase();          //получаем рандомное слово из файла
+        System.out.println(wordMain);           //вывод слова (позже УДАЛИТЬ СТРОКУ)
+        System.out.println(showHiddenWord(wordMain));          //отображаем скрытое слово в виде звездочек
         System.out.println("Введите букву из русского алфавита:");
 
 
-        while (mistakesCount != mistakesNumber) {      //пока количество ошибок игрока не равно допустимому количеству ошибок (6)
+        while (Objects.equals(checkGameState(wordMain), GAME_STATE_NOT_FINISHED)) {      //бесконечный цикл
             String playerGuess = getInputLetter();      //присваиваем ввод пользователя в строку playerGuess
             guessesList.add(playerGuess);      //добавляем букву в массив всех попыток пользователя
-            guessesCount++;            //добавляем эту попытку в подсчет всех попыток
 
-            if (checkPlayerGuess(playerGuess, wordMain)){       //если пользователь угадал букву
+            if (checkPlayerGuess(playerGuess, wordMain)) {       //если пользователь угадал букву
                 System.out.println(showHiddenWord(wordMain));                       //отображаем текущее состояние слова
             } else {                                //если пользователь не угадал
                 System.out.println(showHiddenWord(wordMain));           //отображаем текущее состояние слова
                 mistakesCount++;                    //инкрементируем количество ошибок пользователя
-                System.out.println("Вы не угадали (но сдаваться не стоит).");
-                System.out.println("У вас осталось " + (mistakesNumber - mistakesCount) + " попыток");
+                if (mistakesCount < 6) {
+                    System.out.println("Вы не угадали (но сдаваться не стоит).");
+                    System.out.println("Количество оставшихся попыток: " + (gameMistakesNumber - mistakesCount));
+                    System.out.println("Вы использовали буквы: " + guessesList);    //выводим список использованных букв
+                    System.out.println("\nВведите букву из русского алфавита:");
+                }
+
             }
-
-            System.out.println("Вы использовали буквы: " + guessesList);        //выводим список использованных букв
-            System.out.println("\nВведите букву из русского алфавита:");
-
-
-
         }
+
+        if (Objects.equals(checkGameState(wordMain), GAME_STATE_WIN)){       //если игрок победил
+            System.out.println("Вы победили! Загаданное слово: " + wordMain);
+        }
+
+        if (Objects.equals(checkGameState(wordMain), GAME_STATE_LOSE)){       //если игрок проиграл
+            System.out.println("Вы проиграли! Загаданное слово: " + wordMain);
+        }
+
+
     }
 
     public static String getRandomWord() throws FileNotFoundException { //исключение если файл не найден
@@ -114,8 +120,8 @@ public class Main {
                 continue;
             }
 
-            String letter = input.toLowerCase();        //приведение буквы к нижнему регистру
-            if (!letter.matches("[а-яё]")) {      //проверка только русских букв
+            String letter = input.toUpperCase();        //приведение буквы к верхнему регистру
+            if (!letter.matches("[А-ЯЁ]")) {      //проверка только русских букв
                 System.out.println("Вы ввели неправильный символ! Введите русскую букву!");
                 continue;
             }
@@ -125,18 +131,17 @@ public class Main {
                 continue;
             }
 
-            return letter;                          //возвращаем букву в нижнем регистре
-
+            return letter;                          //возвращаем букву
         }
     }
 
-    public static boolean checkPlayerGuess(String playerGuess, String word){
+    public static boolean checkPlayerGuess(String playerGuess, String word) {
         return word.contains(playerGuess);      // проверяем, есть ли буква пользователя в загаданном слове
     }
 
-    public static String showHiddenWord(String word){  //метод для отображения слова в виде звездочек и с отгаданными буквами
+    public static String showHiddenWord(String word) {  //метод для отображения слова в виде звездочек и с отгаданными буквами
         StringBuilder display = new StringBuilder();       //создаем пустой stringBuilder
-        for (int i = 0; i < word.length(); i ++){       //цикл по длине слова
+        for (int i = 0; i < word.length(); i++) {       //цикл по длине слова
             char c = word.charAt(i);                    //берем символ слова
             if (guessesList.contains(String.valueOf(c))) {  //если лист попыток уже содержит букву
                 display.append(c);                  //отображаем ее
@@ -144,25 +149,29 @@ public class Main {
                 display.append('*');        //иначе скрываем под звездочкой
             }
         }
+
         return display.toString(); //получаем строку
     }
 
-}
 
-//    public static String checkGameState(String word) {
-//
-//        for (char c: word.toCharArray()){   // проходим по каждой букве загаданного слова
-//            if (!guessesList.contains(c) && guessesCount >= 6()){
-//                return GAME_STATE_LOSE;
-//            } else if (!guessesList.contains(c) && guessesCount < word.length()){
-//                return GAME_STATE_LOSE;
-//
-//
-//        }
-//
-//
-//
-//    }}
+
+    public static String checkGameState(String word) {
+
+        if (mistakesCount >= gameMistakesNumber){   //если количество ошибок 6 и более - поражение
+            return GAME_STATE_LOSE;
+        }
+
+        for (char c : word.toCharArray()) {   // проходим по каждой букве загаданного слова
+            if (!guessesList.contains(String.valueOf(c))) {   //если в списке попыток нету хотя бы одной буквы слова - игра еще не завершена
+                return GAME_STATE_NOT_FINISHED;
+            }
+        }
+
+        return GAME_STATE_WIN;          //если цикл не нашел неотгаданных букв - игрок победил
+
+        }
+
+}
 
     //метод getRandomWord, который заходит в файл и берет рандомное слово
     //метод getInputLetter для получения и валидации буквы, вводимой пользователем
