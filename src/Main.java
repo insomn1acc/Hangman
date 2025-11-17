@@ -1,101 +1,249 @@
-//Проект "Виселица"
-
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Scanner;
-import java.util.Random;
+import java.util.*;
 
 
 public class Main {
 
-    private static Scanner scanner1 = new Scanner(System.in);  //сканнер для ввода
-    private static Random random = new Random();           // для генерации чисел
-    private static List<String> guessesList = new ArrayList<>();       //список всех попыток пользователя отгадать буквы
+    private final static Scanner scanner1 = new Scanner(System.in);
+    private final static Random random = new Random();
+    private static List<String> guessesList = new ArrayList<>();
+    private final static String GAME_STATE_WIN = "Игрок победил";
+    private final static String GAME_STATE_LOSE = "Игрок проиграл";
+    private final static String GAME_STATE_NOT_FINISHED = "Игра еще не закончена";
+    private final static int gameMistakesNumber = 6;
+    private static int mistakesCount = 0;
+
+
     public static void main(String[] args) throws FileNotFoundException {
 
-        System.out.println(getRandomWord());
+        startGameLoop();
+    }
+
+    public static void startGameLoop() throws FileNotFoundException {
+        while (true) {
+            System.out.println("Введите [1] для новой игры, или [2] для выхода");
+            String input = scanner1.nextLine();
+            if (input.equals("1")) {
+                startGameRound();
+            } else if (input.equals("2")) {
+                System.out.println("Выход из игры...");
+                break;
+            } else {
+                System.out.println("Ошибка! Введите цифру [1] или [2].");
+            }
+        }
+    }
+
+
+    public static void startGameRound() throws FileNotFoundException {
+        mistakesCount = 0;
+        guessesList.clear();
+
+        String wordMain = getRandomWord().toUpperCase();
+        System.out.println(showHiddenWord(wordMain));
+        System.out.println("Введите букву из русского алфавита:");
+
+        String gameState = checkGameState(wordMain);
+
+
+        while (gameState.equals(GAME_STATE_NOT_FINISHED)) {
+            String playerGuess = getInputLetter();
+            guessesList.add(playerGuess);
+
+            if (checkPlayerGuess(playerGuess, wordMain)) {
+                System.out.println(showHiddenWord(wordMain));
+
+            } else {
+                System.out.println(showHiddenWord(wordMain));
+                mistakesCount++;
+                drawHangman();
+                if (mistakesCount < gameMistakesNumber) {
+                    System.out.println("Вы не угадали (но сдаваться не стоит).");
+                    System.out.println("Количество оставшихся попыток: " + (gameMistakesNumber - mistakesCount));
+                    System.out.println("Вы использовали буквы: " + guessesList);
+
+                }
+            }
+            gameState = checkGameState(wordMain);
+
+            if (gameState.equals(GAME_STATE_NOT_FINISHED)){
+                System.out.println("\nВведите букву из русского алфавита:");
+            }
+        }
+
+        if (gameState.equals(GAME_STATE_WIN)) {
+            System.out.println("\nВы победили! Загаданное слово: " + wordMain);
+        }
+
+        if (gameState.equals(GAME_STATE_LOSE)) {
+            System.out.println("\nВы проиграли! Загаданное слово: " + wordMain);
+        }
 
 
     }
 
-    public static void startGameLoop() {
+    public static String getRandomWord() throws FileNotFoundException {
 
-    }
+        String fileName = "WordsStockRus.txt";
+        File file = new File(fileName);
+        String chosenWord = null;
 
-    public static void startGameRound(){
-        //guessesList.add(letter);      //добавляем букву в массив всех попыток пользователя
-    }
+        int count = 0;
+        try (Scanner scanner2 = new Scanner(file)) {
+            while (scanner2.hasNextLine()) {
+                String word = scanner2.nextLine().trim();
 
-    public static String getRandomWord() throws FileNotFoundException { //исключение если файл не найден
+                if (word.isEmpty()) continue;
+                count++;
 
-        String fileName = "WordsStockRus.txt"; //путь к файлу
-        File file = new File(fileName);   //сохраняем файл
-        String chosenWord = null;      //строка для сохранения полученного слова
-
-        int count = 0;                                  //итератор для посчета слов
-        try (Scanner scanner2 = new Scanner(file)){      //пробуем считать с файла
-            while (scanner2.hasNextLine()){             //пока в файле есть слова
-                String word = scanner2.nextLine().trim();       //считываем слово в строке
-
-                if (word.isEmpty()) continue;                      //если строка пустая - пропускаем
-                count++;                                        //подсчитываем количество слов
-
-                if (random.nextInt(count) == 0){               //каждый раз с небольшой вероятностью заменяем выбранное слово на новое
-                    chosenWord = word;                        //сохраняем слово
+                if (random.nextInt(count) == 0) {
+                    chosenWord = word;
                 }
             }
         }
 
-        if (chosenWord == null) return "Нет слов в файле!";        //нет выбранного слова - в файле нет слов
-        return chosenWord;             //возвращаем сгенерированное слово
+        if (chosenWord == null) return "Нет слов в файле!";
+        return chosenWord;
     }
 
-    public static String getInputLetter(){        //метод для получения введеной пользователем буквы и ее проверки
+    public static String getInputLetter() {
 
-        System.out.println("Введите букву");
+        while (true) {
+            String input = scanner1.nextLine().trim();
 
-        do {
-            String input = scanner1.nextLine().trim();      //получение введеного символа в строку input
-
-            if (input.isEmpty()){                               //проверка на пустое значение
+            if (input.isEmpty()) {
                 System.out.println("Пустое значение! Введите букву!");
                 continue;
             }
 
-            if (input.length() != 1){                       //проверка на кол-во символов
+            if (input.length() != 1) {
                 System.out.println("Введите не больше 1 буквы!");
                 continue;
             }
 
-            char inputChar = input.charAt(0);               //приводим строку к символу
-            if (!Character.isLetter(inputChar)){               //проверка является ли введеной символ буквой
-                System.out.println("Вы ввели неправильный символ! Введите букву!");
+            String letter = input.toUpperCase();
+            if (!letter.matches("[А-ЯЁ]")) {
+                System.out.println("Вы ввели неправильный символ! Введите русскую букву!");
                 continue;
             }
 
-            String letter = input.toLowerCase();        //приводим к нижнему регистру
-
-            if (guessesList.contains(letter)){
+            if (guessesList.contains(letter)) {
                 System.out.println("Вы уже вводили эту букву! Введите новую!");
                 continue;
             }
 
-           //так же напоминание для себя - нужно добавлять букву в массив всех попыток guessesList в другом методе,
-            //чтобы этот метод не перегружался
-
-            return letter;                          //возвращаем букву в нижнем регистре
-
-        } while (true);
+            return letter;
+        }
     }
 
-    //метод getRandomWord, который заходит в файл и берет рандомное слово
-    //метод getInputLetter для получения и валидации буквы, вводимой пользователем
-    //метод startGameRound для начала раунда
-    //метод startGameLoop для начала цикла игры
-    //метод checkGameState для проверки состояния игры
-    //метод checkLetterGuess для проверки угадал ли пользователь букву
-    //метод drawHangman для отрисовки виселицы
+    public static boolean checkPlayerGuess(String playerGuess, String word) {
+        return word.contains(playerGuess);
+    }
+
+    public static String showHiddenWord(String word) {
+        StringBuilder display = new StringBuilder();
+        for (int i = 0; i < word.length(); i++) {
+            char c = word.charAt(i);
+            if (guessesList.contains(String.valueOf(c))) {
+                display.append(c);
+            } else {
+                display.append('*');
+            }
+        }
+
+        return display.toString();
+    }
+
+
+    public static String checkGameState(String word) {
+
+        if (mistakesCount >= gameMistakesNumber) {
+            return GAME_STATE_LOSE;
+        }
+
+        for (char c : word.toCharArray()) {
+            if (!guessesList.contains(String.valueOf(c))) {
+                return GAME_STATE_NOT_FINISHED;
+            }
+        }
+
+        return GAME_STATE_WIN;
+
+    }
+
+    public static void drawHangman(){
+        System.out.println(drawHangmanStages[mistakesCount]);
+    }
+
+    public static String[] drawHangmanStages = {
+        """
+           -----
+           |   |
+           |
+           |
+           |
+           |
+        =========
+        """,
+        """
+           -----
+           |   |
+           |   O
+           |
+           |
+           |
+        =========
+        """,
+        """
+           -----
+           |   |
+           |   O
+           |   |
+           |
+           |
+        =========
+        """,
+        """
+           -----
+           |   |
+           |   O
+           |  /|
+           |
+           |
+        =========
+        """,
+        """
+           -----
+           |   |
+           |   O
+           |  /|\\
+           |
+           |
+        =========
+        """,
+        """
+           -----
+           |   |
+           |   O
+           |  /|\\
+           |  /
+           |
+        =========
+        """,
+        """
+           -----
+           |   |
+           |   O
+           |  /|\\
+           |  / \\
+           |
+        =========
+        """
+    };
 }
+
+
+
+
 
