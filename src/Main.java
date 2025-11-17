@@ -1,5 +1,3 @@
-//Проект "Виселица"
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.*;
@@ -19,9 +17,7 @@ public class Main {
 
     public static void main(String[] args) throws FileNotFoundException {
 
-//        System.out.println(getRandomWord());
         startGameLoop();
-
     }
 
     public static void startGameLoop() throws FileNotFoundException {       //метод для бесконечного цикла игровых раундов
@@ -50,32 +46,40 @@ public class Main {
         System.out.println(showHiddenWord(wordMain));          //отображаем скрытое слово в виде звездочек
         System.out.println("Введите букву из русского алфавита:");
 
+        String gameState = checkGameState(wordMain);
 
-        while (Objects.equals(checkGameState(wordMain), GAME_STATE_NOT_FINISHED)) {      //бесконечный цикл
+
+        while (gameState.equals(GAME_STATE_NOT_FINISHED)) {      //цикл до окончания игры
             String playerGuess = getInputLetter();      //присваиваем ввод пользователя в строку playerGuess
             guessesList.add(playerGuess);      //добавляем букву в массив всех попыток пользователя
 
             if (checkPlayerGuess(playerGuess, wordMain)) {       //если пользователь угадал букву
                 System.out.println(showHiddenWord(wordMain));                       //отображаем текущее состояние слова
+
             } else {                                //если пользователь не угадал
                 System.out.println(showHiddenWord(wordMain));           //отображаем текущее состояние слова
                 mistakesCount++;                    //инкрементируем количество ошибок пользователя
-                if (mistakesCount < 6) {
+                drawHangman();      //отрисовываем виселицу
+                if (mistakesCount < gameMistakesNumber) {
                     System.out.println("Вы не угадали (но сдаваться не стоит).");
                     System.out.println("Количество оставшихся попыток: " + (gameMistakesNumber - mistakesCount));
                     System.out.println("Вы использовали буквы: " + guessesList);    //выводим список использованных букв
-                    System.out.println("\nВведите букву из русского алфавита:");
-                }
 
+                }
+            }
+            gameState = checkGameState(wordMain);
+
+            if (gameState.equals(GAME_STATE_NOT_FINISHED)){
+                System.out.println("\nВведите букву из русского алфавита:");
             }
         }
 
-        if (Objects.equals(checkGameState(wordMain), GAME_STATE_WIN)){       //если игрок победил
-            System.out.println("Вы победили! Загаданное слово: " + wordMain);
+        if (gameState.equals(GAME_STATE_WIN)) {       //если игрок победил
+            System.out.println("\nВы победили! Загаданное слово: " + wordMain);
         }
 
-        if (Objects.equals(checkGameState(wordMain), GAME_STATE_LOSE)){       //если игрок проиграл
-            System.out.println("Вы проиграли! Загаданное слово: " + wordMain);
+        if (gameState.equals(GAME_STATE_LOSE)) {       //если игрок проиграл
+            System.out.println("\nВы проиграли! Загаданное слово: " + wordMain);
         }
 
 
@@ -154,10 +158,9 @@ public class Main {
     }
 
 
-
     public static String checkGameState(String word) {
 
-        if (mistakesCount >= gameMistakesNumber){   //если количество ошибок 6 и более - поражение
+        if (mistakesCount >= gameMistakesNumber) {   //если количество ошибок 6 и более - поражение
             return GAME_STATE_LOSE;
         }
 
@@ -169,7 +172,77 @@ public class Main {
 
         return GAME_STATE_WIN;          //если цикл не нашел неотгаданных букв - игрок победил
 
-        }
+    }
+
+    public static void drawHangman(){
+        System.out.println(drawHangmanStages[mistakesCount]);
+    }
+
+    public static String[] drawHangmanStages = {
+        """
+           -----
+           |   |
+           |
+           |
+           |
+           |
+        =========
+        """,
+        """
+           -----
+           |   |
+           |   O
+           |
+           |
+           |
+        =========
+        """,
+        """
+           -----
+           |   |
+           |   O
+           |   |
+           |
+           |
+        =========
+        """,
+        """
+           -----
+           |   |
+           |   O
+           |  /|
+           |
+           |
+        =========
+        """,
+        """
+           -----
+           |   |
+           |   O
+           |  /|\\
+           |
+           |
+        =========
+        """,
+        """
+           -----
+           |   |
+           |   O
+           |  /|\\
+           |  /
+           |
+        =========
+        """,
+        """
+           -----
+           |   |
+           |   O
+           |  /|\\
+           |  / \\
+           |
+        =========
+        """
+    };
 
 }
 
