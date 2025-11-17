@@ -5,14 +5,14 @@ import java.util.*;
 
 public class Main {
 
-    private static Scanner scanner1 = new Scanner(System.in);  //сканнер для ввода
-    private static Random random = new Random();           // для генерации чисел
-    private static List<String> guessesList = new ArrayList<>();       //список всех попыток пользователя отгадать буквы
-    private static String GAME_STATE_WIN = "Игрок победил";      //состояние игры если игрок победил
-    private static String GAME_STATE_LOSE = "Игрок проиграл";    //состояние игры если игрок проиграл
-    private static String GAME_STATE_NOT_FINISHED = "Игра еще не закончена"; //состояние игры если она еще не закончена
-    private static int gameMistakesNumber = 6;                  //количество допустимых ошибок для пользователя
-    private static int mistakesCount = 0;               //подсчет всех ошибок
+    private static Scanner scanner1 = new Scanner(System.in);
+    private static Random random = new Random();
+    private static List<String> guessesList = new ArrayList<>();
+    private static String GAME_STATE_WIN = "Игрок победил";
+    private static String GAME_STATE_LOSE = "Игрок проиграл";
+    private static String GAME_STATE_NOT_FINISHED = "Игра еще не закончена";
+    private static int gameMistakesNumber = 6;
+    private static int mistakesCount = 0;
 
 
     public static void main(String[] args) throws FileNotFoundException {
@@ -20,10 +20,10 @@ public class Main {
         startGameLoop();
     }
 
-    public static void startGameLoop() throws FileNotFoundException {       //метод для бесконечного цикла игровых раундов
+    public static void startGameLoop() throws FileNotFoundException {
         while (true) {
             System.out.println("Введите [1] для новой игры, или [2] для выхода");
-            String input = scanner1.nextLine();        //получаем ввод пользователя
+            String input = scanner1.nextLine();
             if (input.equals("1")) {
                 startGameRound();
             } else if (input.equals("2")) {
@@ -38,32 +38,31 @@ public class Main {
 
 
     public static void startGameRound() throws FileNotFoundException {
-        mistakesCount = 0;      //очищаем количество ошибок пользователя
-        guessesList.clear();    //очищаем список использованных букв пользователя
+        mistakesCount = 0;
+        guessesList.clear();
 
-        String wordMain = getRandomWord().toUpperCase();          //получаем рандомное слово из файла
-        System.out.println(wordMain);           //вывод слова (позже УДАЛИТЬ СТРОКУ)
-        System.out.println(showHiddenWord(wordMain));          //отображаем скрытое слово в виде звездочек
+        String wordMain = getRandomWord().toUpperCase();
+        System.out.println(showHiddenWord(wordMain));
         System.out.println("Введите букву из русского алфавита:");
 
         String gameState = checkGameState(wordMain);
 
 
-        while (gameState.equals(GAME_STATE_NOT_FINISHED)) {      //цикл до окончания игры
-            String playerGuess = getInputLetter();      //присваиваем ввод пользователя в строку playerGuess
-            guessesList.add(playerGuess);      //добавляем букву в массив всех попыток пользователя
+        while (gameState.equals(GAME_STATE_NOT_FINISHED)) {
+            String playerGuess = getInputLetter();
+            guessesList.add(playerGuess);
 
-            if (checkPlayerGuess(playerGuess, wordMain)) {       //если пользователь угадал букву
-                System.out.println(showHiddenWord(wordMain));                       //отображаем текущее состояние слова
+            if (checkPlayerGuess(playerGuess, wordMain)) {
+                System.out.println(showHiddenWord(wordMain));
 
-            } else {                                //если пользователь не угадал
-                System.out.println(showHiddenWord(wordMain));           //отображаем текущее состояние слова
-                mistakesCount++;                    //инкрементируем количество ошибок пользователя
-                drawHangman();      //отрисовываем виселицу
+            } else {
+                System.out.println(showHiddenWord(wordMain));
+                mistakesCount++;
+                drawHangman();
                 if (mistakesCount < gameMistakesNumber) {
                     System.out.println("Вы не угадали (но сдаваться не стоит).");
                     System.out.println("Количество оставшихся попыток: " + (gameMistakesNumber - mistakesCount));
-                    System.out.println("Вы использовали буквы: " + guessesList);    //выводим список использованных букв
+                    System.out.println("Вы использовали буквы: " + guessesList);
 
                 }
             }
@@ -74,58 +73,58 @@ public class Main {
             }
         }
 
-        if (gameState.equals(GAME_STATE_WIN)) {       //если игрок победил
+        if (gameState.equals(GAME_STATE_WIN)) {
             System.out.println("\nВы победили! Загаданное слово: " + wordMain);
         }
 
-        if (gameState.equals(GAME_STATE_LOSE)) {       //если игрок проиграл
+        if (gameState.equals(GAME_STATE_LOSE)) {
             System.out.println("\nВы проиграли! Загаданное слово: " + wordMain);
         }
 
 
     }
 
-    public static String getRandomWord() throws FileNotFoundException { //исключение если файл не найден
+    public static String getRandomWord() throws FileNotFoundException {
 
-        String fileName = "WordsStockRus.txt"; //путь к файлу
-        File file = new File(fileName);   //сохраняем файл
-        String chosenWord = null;      //строка для сохранения полученного слова
+        String fileName = "WordsStockRus.txt";
+        File file = new File(fileName);
+        String chosenWord = null;
 
-        int count = 0;                                  //итератор для посчета слов
-        try (Scanner scanner2 = new Scanner(file)) {      //пробуем считать с файла
-            while (scanner2.hasNextLine()) {             //пока в файле есть слова
-                String word = scanner2.nextLine().trim();       //считываем слово в строке
+        int count = 0;
+        try (Scanner scanner2 = new Scanner(file)) {
+            while (scanner2.hasNextLine()) {
+                String word = scanner2.nextLine().trim();
 
-                if (word.isEmpty()) continue;                      //если строка пустая - пропускаем
-                count++;                                        //подсчитываем количество слов
+                if (word.isEmpty()) continue;
+                count++;
 
-                if (random.nextInt(count) == 0) {               //каждый раз с небольшой вероятностью заменяем выбранное слово на новое
-                    chosenWord = word;                        //сохраняем слово
+                if (random.nextInt(count) == 0) {
+                    chosenWord = word;
                 }
             }
         }
 
-        if (chosenWord == null) return "Нет слов в файле!";        //нет выбранного слова - в файле нет слов
-        return chosenWord;             //возвращаем сгенерированное слово
+        if (chosenWord == null) return "Нет слов в файле!";
+        return chosenWord;
     }
 
-    public static String getInputLetter() {        //метод для получения введеной пользователем буквы и ее проверки
+    public static String getInputLetter() {
 
         while (true) {
-            String input = scanner1.nextLine().trim();      //получение введеного символа в строку input
+            String input = scanner1.nextLine().trim();
 
-            if (input.isEmpty()) {                               //проверка на пустое значение
+            if (input.isEmpty()) {
                 System.out.println("Пустое значение! Введите букву!");
                 continue;
             }
 
-            if (input.length() != 1) {                       //проверка на кол-во символов
+            if (input.length() != 1) {
                 System.out.println("Введите не больше 1 буквы!");
                 continue;
             }
 
-            String letter = input.toUpperCase();        //приведение буквы к верхнему регистру
-            if (!letter.matches("[А-ЯЁ]")) {      //проверка только русских букв
+            String letter = input.toUpperCase();
+            if (!letter.matches("[А-ЯЁ]")) {
                 System.out.println("Вы ввели неправильный символ! Введите русскую букву!");
                 continue;
             }
@@ -135,7 +134,7 @@ public class Main {
                 continue;
             }
 
-            return letter;                          //возвращаем букву
+            return letter;
         }
     }
 
