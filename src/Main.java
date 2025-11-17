@@ -5,13 +5,13 @@ import java.util.*;
 
 public class Main {
 
-    private static Scanner scanner1 = new Scanner(System.in);
-    private static Random random = new Random();
+    private final static Scanner scanner1 = new Scanner(System.in);
+    private final static Random random = new Random();
     private static List<String> guessesList = new ArrayList<>();
-    private static String GAME_STATE_WIN = "Игрок победил";
-    private static String GAME_STATE_LOSE = "Игрок проиграл";
-    private static String GAME_STATE_NOT_FINISHED = "Игра еще не закончена";
-    private static int gameMistakesNumber = 6;
+    private final static String GAME_STATE_WIN = "Игрок победил";
+    private final static String GAME_STATE_LOSE = "Игрок проиграл";
+    private final static String GAME_STATE_NOT_FINISHED = "Игра еще не закончена";
+    private final static int gameMistakesNumber = 6;
     private static int mistakesCount = 0;
 
 
@@ -32,7 +32,6 @@ public class Main {
             } else {
                 System.out.println("Ошибка! Введите цифру [1] или [2].");
             }
-
         }
     }
 
@@ -139,37 +138,37 @@ public class Main {
     }
 
     public static boolean checkPlayerGuess(String playerGuess, String word) {
-        return word.contains(playerGuess);      // проверяем, есть ли буква пользователя в загаданном слове
+        return word.contains(playerGuess);
     }
 
-    public static String showHiddenWord(String word) {  //метод для отображения слова в виде звездочек и с отгаданными буквами
-        StringBuilder display = new StringBuilder();       //создаем пустой stringBuilder
-        for (int i = 0; i < word.length(); i++) {       //цикл по длине слова
-            char c = word.charAt(i);                    //берем символ слова
-            if (guessesList.contains(String.valueOf(c))) {  //если лист попыток уже содержит букву
-                display.append(c);                  //отображаем ее
+    public static String showHiddenWord(String word) {
+        StringBuilder display = new StringBuilder();
+        for (int i = 0; i < word.length(); i++) {
+            char c = word.charAt(i);
+            if (guessesList.contains(String.valueOf(c))) {
+                display.append(c);
             } else {
-                display.append('*');        //иначе скрываем под звездочкой
+                display.append('*');
             }
         }
 
-        return display.toString(); //получаем строку
+        return display.toString();
     }
 
 
     public static String checkGameState(String word) {
 
-        if (mistakesCount >= gameMistakesNumber) {   //если количество ошибок 6 и более - поражение
+        if (mistakesCount >= gameMistakesNumber) {
             return GAME_STATE_LOSE;
         }
 
-        for (char c : word.toCharArray()) {   // проходим по каждой букве загаданного слова
-            if (!guessesList.contains(String.valueOf(c))) {   //если в списке попыток нету хотя бы одной буквы слова - игра еще не завершена
+        for (char c : word.toCharArray()) {
+            if (!guessesList.contains(String.valueOf(c))) {
                 return GAME_STATE_NOT_FINISHED;
             }
         }
 
-        return GAME_STATE_WIN;          //если цикл не нашел неотгаданных букв - игрок победил
+        return GAME_STATE_WIN;
 
     }
 
@@ -242,16 +241,9 @@ public class Main {
         =========
         """
     };
-
 }
 
-    //метод getRandomWord, который заходит в файл и берет рандомное слово
-    //метод getInputLetter для получения и валидации буквы, вводимой пользователем
-    //метод startGameRound для начала раунда
-    //метод startGameLoop для начала цикла игры
-    //метод checkGameState для проверки состояния игры
-    //метод checkPlayerGuess для проверки угадал ли пользователь букву
-    //метод drawHangman для отрисовки виселицы
+
 
 
 
