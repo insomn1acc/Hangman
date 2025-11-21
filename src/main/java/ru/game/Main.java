@@ -1,3 +1,5 @@
+package main.java.ru.game;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.*;
