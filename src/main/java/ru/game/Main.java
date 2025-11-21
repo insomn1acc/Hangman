@@ -87,7 +87,7 @@ public class Main {
 
     public static String getRandomWord() throws FileNotFoundException {
 
-        String fileName = "WordsStockRus.txt";
+        String fileName = "Words.txt";
         File file = new File(fileName);
         String chosenWord = null;
 
