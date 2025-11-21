@@ -7,25 +7,23 @@ import java.util.*;
 
 public class Main {
 
-    private final static Scanner scanner1 = new Scanner(System.in);
-    private final static Random random = new Random();
-    private static List<String> guessesList = new ArrayList<>();
-    private final static String GAME_STATE_WIN = "Игрок победил";
-    private final static String GAME_STATE_LOSE = "Игрок проиграл";
-    private final static String GAME_STATE_NOT_FINISHED = "Игра еще не закончена";
-    private final static int gameMistakesNumber = 6;
+    private static final Scanner consoleScanner = new Scanner(System.in);
+    private static final Random random = new Random();
+    private static final List<Character> usedLetters = new ArrayList<>();
+    private static final String GAME_STATE_WIN = "Игрок победил";
+    private static final String GAME_STATE_LOSE = "Игрок проиграл";
+    private static final String GAME_STATE_NOT_FINISHED = "Игра еще не закончена";
+    private static final int MAX_MISTAKES = 6;
     private static int mistakesCount = 0;
-
-
+    
     public static void main(String[] args) throws FileNotFoundException {
-
         startGameLoop();
     }
 
-    public static void startGameLoop() throws FileNotFoundException {
+    private static void startGameLoop() throws FileNotFoundException {
         while (true) {
             System.out.println("Введите [1] для новой игры, или [2] для выхода");
-            String input = scanner1.nextLine();
+            String input = consoleScanner.nextLine();
             if (input.equals("1")) {
                 startGameRound();
             } else if (input.equals("2")) {
@@ -38,9 +36,9 @@ public class Main {
     }
 
 
-    public static void startGameRound() throws FileNotFoundException {
+    private static void startGameRound() throws FileNotFoundException {
         mistakesCount = 0;
-        guessesList.clear();
+        usedLetters.clear();
 
         String wordMain = getRandomWord().toUpperCase();
         System.out.println(showHiddenWord(wordMain));
@@ -50,8 +48,8 @@ public class Main {
 
 
         while (gameState.equals(GAME_STATE_NOT_FINISHED)) {
-            String playerGuess = getInputLetter();
-            guessesList.add(playerGuess);
+            Character playerGuess = getInputLetter();
+            usedLetters.add(playerGuess);
 
             if (checkPlayerGuess(playerGuess, wordMain)) {
                 System.out.println(showHiddenWord(wordMain));
@@ -60,10 +58,10 @@ public class Main {
                 System.out.println(showHiddenWord(wordMain));
                 mistakesCount++;
                 drawHangman();
-                if (mistakesCount < gameMistakesNumber) {
+                if (mistakesCount < MAX_MISTAKES) {
                     System.out.println("Вы не угадали (но сдаваться не стоит).");
-                    System.out.println("Количество оставшихся попыток: " + (gameMistakesNumber - mistakesCount));
-                    System.out.println("Вы использовали буквы: " + guessesList);
+                    System.out.println("Количество оставшихся попыток: " + (MAX_MISTAKES - mistakesCount));
+                    System.out.println("Вы использовали буквы: " + usedLetters);
 
                 }
             }
@@ -77,24 +75,20 @@ public class Main {
         if (gameState.equals(GAME_STATE_WIN)) {
             System.out.println("\nВы победили! Загаданное слово: " + wordMain);
         }
-
         if (gameState.equals(GAME_STATE_LOSE)) {
             System.out.println("\nВы проиграли! Загаданное слово: " + wordMain);
         }
-
-
     }
 
-    public static String getRandomWord() throws FileNotFoundException {
-
+    private static String getRandomWord() throws FileNotFoundException {
         String fileName = "Words.txt";
         File file = new File(fileName);
         String chosenWord = null;
-
         int count = 0;
-        try (Scanner scanner2 = new Scanner(file)) {
-            while (scanner2.hasNextLine()) {
-                String word = scanner2.nextLine().trim();
+
+        try (Scanner fileScanner = new Scanner(file)) {
+            while (fileScanner.hasNextLine()) {
+                String word = fileScanner.nextLine().trim();
 
                 if (word.isEmpty()) continue;
                 count++;
@@ -109,10 +103,10 @@ public class Main {
         return chosenWord;
     }
 
-    public static String getInputLetter() {
+    private static Character getInputLetter() {
 
         while (true) {
-            String input = scanner1.nextLine().trim();
+            String input = consoleScanner.nextLine().trim();
 
             if (input.isEmpty()) {
                 System.out.println("Пустое значение! Введите букву!");
@@ -124,13 +118,14 @@ public class Main {
                 continue;
             }
 
-            String letter = input.toUpperCase();
-            if (!letter.matches("[А-ЯЁ]")) {
+            char letter = Character.toUpperCase(input.charAt(0));
+
+            if ((letter < 'А' || letter > 'Я') && letter != 'Ё') {
                 System.out.println("Вы ввели неправильный символ! Введите русскую букву!");
                 continue;
             }
 
-            if (guessesList.contains(letter)) {
+            if (usedLetters.contains(letter)) {
                 System.out.println("Вы уже вводили эту букву! Введите новую!");
                 continue;
             }
@@ -139,15 +134,15 @@ public class Main {
         }
     }
 
-    public static boolean checkPlayerGuess(String playerGuess, String word) {
-        return word.contains(playerGuess);
+    private static boolean checkPlayerGuess(Character playerGuess, String word) {
+        return word.contains(String.valueOf(playerGuess));
     }
 
-    public static String showHiddenWord(String word) {
+    private static String showHiddenWord(String word) {
         StringBuilder display = new StringBuilder();
         for (int i = 0; i < word.length(); i++) {
             char c = word.charAt(i);
-            if (guessesList.contains(String.valueOf(c))) {
+            if (usedLetters.contains(c)) {
                 display.append(c);
             } else {
                 display.append('*');
@@ -158,14 +153,14 @@ public class Main {
     }
 
 
-    public static String checkGameState(String word) {
+    private static String checkGameState(String word) {
 
-        if (mistakesCount >= gameMistakesNumber) {
+        if (mistakesCount >= MAX_MISTAKES) {
             return GAME_STATE_LOSE;
         }
 
         for (char c : word.toCharArray()) {
-            if (!guessesList.contains(String.valueOf(c))) {
+            if (!usedLetters.contains(c)) {
                 return GAME_STATE_NOT_FINISHED;
             }
         }
@@ -174,11 +169,11 @@ public class Main {
 
     }
 
-    public static void drawHangman(){
+    private static void drawHangman(){
         System.out.println(drawHangmanStages[mistakesCount]);
     }
 
-    public static String[] drawHangmanStages = {
+    private static final String[] drawHangmanStages = {
         """
            -----
            |   |
