@@ -16,16 +16,22 @@ public class Main {
     private static final int MAX_MISTAKES = 6;
     private static int mistakesCount = 0;
     
-    public static void main(String[] args) throws FileNotFoundException {
-        startGameLoop();
+    public static void main(String[] args){
+        try {
+            startGameMenu();
+        } catch (RuntimeException e){
+            System.out.println("Unhandled error: " + e.getClass().getSimpleName());
+            System.out.println(e.getMessage());
+            System.out.println("Program stopped");
+        }
     }
 
-    private static void startGameLoop() throws FileNotFoundException {
+    private static void startGameMenu(){
         while (true) {
             System.out.println("Введите [1] для новой игры, или [2] для выхода");
             String input = consoleScanner.nextLine();
             if (input.equals("1")) {
-                startGameRound();
+                startGame();
             } else if (input.equals("2")) {
                 System.out.println("Выход из игры...");
                 break;
@@ -36,26 +42,26 @@ public class Main {
     }
 
 
-    private static void startGameRound() throws FileNotFoundException {
+    private static void startGame(){
         mistakesCount = 0;
         usedLetters.clear();
 
-        String wordMain = getRandomWord().toUpperCase();
-        System.out.println(showHiddenWord(wordMain));
+        String secretWord = getRandomWord().toUpperCase();
+        System.out.println(showHiddenWord(secretWord));
         System.out.println("Введите букву из русского алфавита:");
 
-        String gameState = checkGameState(wordMain);
+        String gameState = checkGameState(secretWord);
 
 
         while (gameState.equals(GAME_STATE_NOT_FINISHED)) {
             Character playerGuess = getInputLetter();
             usedLetters.add(playerGuess);
 
-            if (checkPlayerGuess(playerGuess, wordMain)) {
-                System.out.println(showHiddenWord(wordMain));
+            if (checkPlayerGuess(playerGuess, secretWord)) {
+                System.out.println(showHiddenWord(secretWord));
 
             } else {
-                System.out.println(showHiddenWord(wordMain));
+                System.out.println(showHiddenWord(secretWord));
                 mistakesCount++;
                 drawHangman();
                 if (mistakesCount < MAX_MISTAKES) {
@@ -65,7 +71,7 @@ public class Main {
 
                 }
             }
-            gameState = checkGameState(wordMain);
+            gameState = checkGameState(secretWord);
 
             if (gameState.equals(GAME_STATE_NOT_FINISHED)){
                 System.out.println("\nВведите букву из русского алфавита:");
@@ -73,14 +79,14 @@ public class Main {
         }
 
         if (gameState.equals(GAME_STATE_WIN)) {
-            System.out.println("\nВы победили! Загаданное слово: " + wordMain);
+            System.out.println("\nВы победили! Загаданное слово: " + secretWord);
         }
         if (gameState.equals(GAME_STATE_LOSE)) {
-            System.out.println("\nВы проиграли! Загаданное слово: " + wordMain);
+            System.out.println("\nВы проиграли! Загаданное слово: " + secretWord);
         }
     }
 
-    private static String getRandomWord() throws FileNotFoundException {
+    private static String getRandomWord(){
         String fileName = "Words.txt";
         File file = new File(fileName);
         String chosenWord = null;
@@ -97,9 +103,16 @@ public class Main {
                     chosenWord = word;
                 }
             }
+        } catch (FileNotFoundException e){
+            throw new RuntimeException(
+                    "Failed to load word dictionary file. File not found: " + file.getAbsolutePath(), e);
         }
 
-        if (chosenWord == null) return "Нет слов в файле!";
+        if (chosenWord == null) {
+            throw new RuntimeException(
+            "Dictionary file is empty: " + file.getAbsolutePath());
+        }
+
         return chosenWord;
     }
 
