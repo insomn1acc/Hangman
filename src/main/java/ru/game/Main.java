@@ -10,9 +10,6 @@ public class Main {
     private static final Scanner consoleScanner = new Scanner(System.in);
     private static final Random random = new Random();
     private static final List<Character> usedLetters = new ArrayList<>();
-    private static final String GAME_STATE_WIN = "Игрок победил";
-    private static final String GAME_STATE_LOSE = "Игрок проиграл";
-    private static final String GAME_STATE_NOT_FINISHED = "Игра еще не закончена";
     private static final int MAX_MISTAKES = 6;
     private static int mistakesCount = 0;
     
@@ -41,48 +38,62 @@ public class Main {
         }
     }
 
+    private static boolean isGameOver(String secretWord) {
+        return isLose() || isWin(secretWord);
+    }
+
+    private static boolean isWin(String secretWord) {
+        for (char ch : secretWord.toCharArray()) {
+            if (!usedLetters.contains(ch)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private static boolean isLose() {
+        return mistakesCount >= MAX_MISTAKES;
+    }
+
 
     private static void startGame(){
         mistakesCount = 0;
         usedLetters.clear();
 
         String secretWord = getRandomWord().toUpperCase();
-        System.out.println(showHiddenWord(secretWord));
-        System.out.println("Введите букву из русского алфавита:");
 
-        String gameState = checkGameState(secretWord);
-
-
-        while (gameState.equals(GAME_STATE_NOT_FINISHED)) {
-            Character playerGuess = getInputLetter();
-            usedLetters.add(playerGuess);
-
-            if (checkPlayerGuess(playerGuess, secretWord)) {
-                System.out.println(showHiddenWord(secretWord));
-
-            } else {
-                System.out.println(showHiddenWord(secretWord));
-                mistakesCount++;
-                drawHangman();
-                if (mistakesCount < MAX_MISTAKES) {
-                    System.out.println("Вы не угадали (но сдаваться не стоит).");
-                    System.out.println("Количество оставшихся попыток: " + (MAX_MISTAKES - mistakesCount));
-                    System.out.println("Вы использовали буквы: " + usedLetters);
-
-                }
-            }
-            gameState = checkGameState(secretWord);
-
-            if (gameState.equals(GAME_STATE_NOT_FINISHED)){
-                System.out.println("\nВведите букву из русского алфавита:");
-            }
+        while (!isGameOver(secretWord)){
+            printGameState(secretWord);
+            processGuess(secretWord);
         }
 
-        if (gameState.equals(GAME_STATE_WIN)) {
+        if (isWin(secretWord)) {
             System.out.println("\nВы победили! Загаданное слово: " + secretWord);
         }
-        if (gameState.equals(GAME_STATE_LOSE)) {
+        if (isLose()) {
             System.out.println("\nВы проиграли! Загаданное слово: " + secretWord);
+            drawHangman();
+        }
+    }
+
+    private static void printGameState(String secretWord){
+        System.out.println(showHiddenWord(secretWord));
+        drawHangman();
+        System.out.println("Использованные буквы: " + usedLetters);
+        System.out.println("Введите букву из русского алфавита:");
+    }
+
+    private static void processGuess(String secretWord){
+        Character playerGuess = readInputLetter();
+        usedLetters.add(playerGuess);
+        if (!isCorrectGuess(playerGuess, secretWord)){
+            mistakesCount++;
+            if (mistakesCount < MAX_MISTAKES){
+                System.out.println("Вы не угадали букву!");
+                System.out.println("Осталось попыток: " + (MAX_MISTAKES - mistakesCount));
+            }
+        } else {
+            System.out.println("Отлично! Вы угадали букву");
         }
     }
 
@@ -116,7 +127,7 @@ public class Main {
         return chosenWord;
     }
 
-    private static Character getInputLetter() {
+    private static Character readInputLetter() {
 
         while (true) {
             String input = consoleScanner.nextLine().trim();
@@ -147,7 +158,7 @@ public class Main {
         }
     }
 
-    private static boolean checkPlayerGuess(Character playerGuess, String word) {
+    private static boolean isCorrectGuess(Character playerGuess, String word) {
         return word.contains(String.valueOf(playerGuess));
     }
 
@@ -163,23 +174,6 @@ public class Main {
         }
 
         return display.toString();
-    }
-
-
-    private static String checkGameState(String word) {
-
-        if (mistakesCount >= MAX_MISTAKES) {
-            return GAME_STATE_LOSE;
-        }
-
-        for (char c : word.toCharArray()) {
-            if (!usedLetters.contains(c)) {
-                return GAME_STATE_NOT_FINISHED;
-            }
-        }
-
-        return GAME_STATE_WIN;
-
     }
 
     private static void drawHangman(){
