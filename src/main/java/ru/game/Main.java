@@ -222,74 +222,11 @@ public class Main {
     }
 
     private static void drawHangman(){
-        System.out.println(drawHangmanStages[mistakesCount]);
+        if (mistakesCount < 0 || mistakesCount > 6){
+            throw new IllegalArgumentException("Invalid hangman stage: " + mistakesCount);
+        }
+        HangmanRenderer.render(mistakesCount);
     }
-
-    private static final String[] drawHangmanStages = {
-        """
-           -----
-           |   |
-           |
-           |
-           |
-           |
-        =========
-        """,
-        """
-           -----
-           |   |
-           |   O
-           |
-           |
-           |
-        =========
-        """,
-        """
-           -----
-           |   |
-           |   O
-           |   |
-           |
-           |
-        =========
-        """,
-        """
-           -----
-           |   |
-           |   O
-           |  /|
-           |
-           |
-        =========
-        """,
-        """
-           -----
-           |   |
-           |   O
-           |  /|\\
-           |
-           |
-        =========
-        """,
-        """
-           -----
-           |   |
-           |   O
-           |  /|\\
-           |  /
-           |
-        =========
-        """,
-        """
-           -----
-           |   |
-           |   O
-           |  /|\\
-           |  / \\
-           |
-        =========
-        """
-    };
 }
 
 
