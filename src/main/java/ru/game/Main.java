@@ -12,15 +12,19 @@ public class Main {
     private static final List<Character> usedLetters = new ArrayList<>();
     private static final int MAX_MISTAKES = 6;
     private static int mistakesCount = 0;
+    private static final List<String> dictionary = new ArrayList<>();
     
     public static void main(String[] args){
         try {
-            startGameMenu();
+            loadDictionary();
         } catch (RuntimeException e){
             System.out.println("Unhandled error: " + e.getClass().getSimpleName());
             System.out.println(e.getMessage());
             System.out.println("Program stopped");
+            return;
         }
+
+        startGameMenu();
     }
 
     private static void startGameMenu(){
@@ -76,6 +80,19 @@ public class Main {
         }
     }
 
+    private static boolean applyGuess(char ch, String word){
+        boolean hit = word.contains(String.valueOf(ch));
+        if (!hit) mistakesCount++;
+        return hit;
+    }
+
+    private static void showGuessResult(boolean success){
+        if (success){
+            System.out.println("Отлично! Вы угадали!");
+        } else {
+            System.out.println("Вы не угадали!");
+    }}
+
     private static void printGameState(String secretWord){
         System.out.println(showHiddenWord(secretWord));
         drawHangman();
@@ -84,47 +101,70 @@ public class Main {
     }
 
     private static void processGuess(String secretWord){
-        Character playerGuess = readInputLetter();
+        char playerGuess = readInputLetter();
         usedLetters.add(playerGuess);
-        if (!isCorrectGuess(playerGuess, secretWord)){
-            mistakesCount++;
-            if (mistakesCount < MAX_MISTAKES){
-                System.out.println("Вы не угадали букву!");
-                System.out.println("Осталось попыток: " + (MAX_MISTAKES - mistakesCount));
-            }
-        } else {
-            System.out.println("Отлично! Вы угадали букву");
+
+        boolean success = applyGuess(playerGuess, secretWord);
+        showGuessResult(success);
+
+        if (mistakesCount < MAX_MISTAKES){
+            System.out.println("Осталось попыток: " + (MAX_MISTAKES - mistakesCount));
         }
     }
 
-    private static String getRandomWord(){
+    private static void loadDictionary(){
+        dictionary.clear();
+
         String fileName = "Words.txt";
         File file = new File(fileName);
-        String chosenWord = null;
-        int count = 0;
 
-        try (Scanner fileScanner = new Scanner(file)) {
-            while (fileScanner.hasNextLine()) {
-                String word = fileScanner.nextLine().trim();
+        if (!file.exists()) {
+            throw new RuntimeException("Dictionary file not found: " + file.getAbsolutePath());
+        }
 
-                if (word.isEmpty()) continue;
-                count++;
+        if (file.length() == 0) {
+            throw new RuntimeException(
+                    "Dictionary file is empty: " + file.getAbsolutePath());
+        }
 
-                if (random.nextInt(count) == 0) {
-                    chosenWord = word;
+        try (Scanner fileScanner = new Scanner(file, "UTF-8")){
+            while (fileScanner.hasNextLine()){
+                String raw = fileScanner.nextLine();
+                String word = normalizeLine(raw);
+
+                if (word.isEmpty()){
+                    continue;
                 }
+
+                dictionary.add(word);
+            }
+
+            dictionary.removeIf(String::isBlank);
+
+            if (dictionary.isEmpty()){
+                throw new RuntimeException(
+                        "Dictionary file contains only empty lines: " + file.getAbsolutePath());
             }
         } catch (FileNotFoundException e){
             throw new RuntimeException(
                     "Failed to load word dictionary file. File not found: " + file.getAbsolutePath(), e);
         }
+    }
 
-        if (chosenWord == null) {
-            throw new RuntimeException(
-            "Dictionary file is empty: " + file.getAbsolutePath());
+    private static String normalizeLine(String s) {
+        if (s == null) return "";
+        String cleaned = s.replaceAll("[\\uFEFF\\u200B\\u200C\\u200D\\u2060]", "");
+        cleaned = cleaned.trim();
+        return cleaned;
+    }
+
+    private static String getRandomWord(){
+        if (dictionary.isEmpty()) {
+            throw new IllegalStateException("Dictionary is empty");
         }
 
-        return chosenWord;
+        int wordIndex = random.nextInt(dictionary.size());
+        return dictionary.get(wordIndex);
     }
 
     private static Character readInputLetter() {
@@ -156,10 +196,6 @@ public class Main {
 
             return letter;
         }
-    }
-
-    private static boolean isCorrectGuess(Character playerGuess, String word) {
-        return word.contains(String.valueOf(playerGuess));
     }
 
     private static String showHiddenWord(String word) {
