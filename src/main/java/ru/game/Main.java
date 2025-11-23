@@ -13,6 +13,8 @@ public class Main {
     private static final int MAX_MISTAKES = 6;
     private static int mistakesCount = 0;
     private static final List<String> dictionary = new ArrayList<>();
+    private static final char HIDDEN_LETTER_CHAR = '*';
+    private static final StringBuilder SECRET_WORD_MASK = new StringBuilder();
     
     public static void main(String[] args){
         try {
@@ -65,9 +67,10 @@ public class Main {
         usedLetters.clear();
 
         String secretWord = getRandomWord().toUpperCase();
+        initializeSecretWordMask(secretWord);
 
         while (!isGameOver(secretWord)){
-            printGameState(secretWord);
+            printGameState();
             processGuess(secretWord);
         }
 
@@ -82,7 +85,11 @@ public class Main {
 
     private static boolean applyGuess(char ch, String word){
         boolean hit = word.contains(String.valueOf(ch));
-        if (!hit) mistakesCount++;
+        if (!hit){
+            mistakesCount++;
+        } else {
+            openLetter(ch, word);
+        }
         return hit;
     }
 
@@ -91,10 +98,11 @@ public class Main {
             System.out.println("Отлично! Вы угадали!");
         } else {
             System.out.println("Вы не угадали!");
-    }}
+        }
+    }
 
-    private static void printGameState(String secretWord){
-        System.out.println(showHiddenWord(secretWord));
+    private static void printGameState(){
+        System.out.println(SECRET_WORD_MASK);
         drawHangman();
         System.out.println("Использованные буквы: " + usedLetters);
         System.out.println("Введите букву из русского алфавита:");
@@ -198,18 +206,19 @@ public class Main {
         }
     }
 
-    private static String showHiddenWord(String word) {
-        StringBuilder display = new StringBuilder();
-        for (int i = 0; i < word.length(); i++) {
-            char c = word.charAt(i);
-            if (usedLetters.contains(c)) {
-                display.append(c);
-            } else {
-                display.append('*');
+    private static void initializeSecretWordMask(String secretWord){
+        SECRET_WORD_MASK.setLength(0);
+        for (int i = 0; i < secretWord.length(); i++){
+            SECRET_WORD_MASK.append(HIDDEN_LETTER_CHAR);
+        }
+    }
+
+    private static void openLetter(char letter, String secretWord){
+        for (int i = 0; i < secretWord.length(); i++){
+            if (secretWord.charAt(i) == letter){
+                SECRET_WORD_MASK.setCharAt(i, letter);
             }
         }
-
-        return display.toString();
     }
 
     private static void drawHangman(){
